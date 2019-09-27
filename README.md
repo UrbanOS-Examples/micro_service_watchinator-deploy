@@ -1,0 +1,2 @@
+# micro_service_watchinator-deploy
+Deploy repository for micro_service_watchinator
