@@ -5,74 +5,48 @@ library(
     credentialsId:'jenkins-github-user'])
 )
 
+properties([
+    pipelineTriggers([scos.dailyBuildTrigger()]),
+    parameters([
+        booleanParam(defaultValue: false, description: 'Deploy to development environment?', name: 'DEV_DEPLOYMENT'),
+        string(defaultValue: 'development', description: 'Image tag to deploy to dev environment', name: 'DEV_IMAGE_TAG')
+    ])
+])
+
 def image, imageName
 def doStageIf = scos.&doStageIf
+def doStageIfDeployingToDev = doStageIf.curry(env.DEV_DEPLOYMENT == "true")
+def doStageIfMergedToMaster = doStageIf.curry(scos.changeset.isMaster && env.DEV_DEPLOYMENT == "false")
 def doStageIfRelease = doStageIf.curry(scos.changeset.isRelease)
-def doStageUnlessRelease = doStageIf.curry(!scos.changeset.isRelease)
-def doStageIfPromoted = doStageIf.curry(scos.changeset.isMaster)
 
-
-node('infrastructure') {
+node ('infrastructure') {
     ansiColor('xterm') {
         scos.doCheckoutStage()
-        stage("Checkout submodules") {
-            sshagent(credentials: ["GitHub"]) {
-                sh("GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git submodule update --init --recursive")
-            }
+
+        doStageIfDeployingToDev('Deploy to Dev') {
+            deployTo('dev', "--set image.tag=${env.DEV_IMAGE_TAG} --recreate-pods")
         }
 
-        def SERVICE_NAME="micro-service-watchinator"
-        imageName = "scos/${SERVICE_NAME}"
-        imageTag = "${env.GIT_COMMIT_HASH}"
-
-        doStageUnlessRelease('Build') {
-
-            image = docker.build("${imageName}:${imageTag}")
-            println image.getClass()
+        doStageIfMergedToMaster('Process Dev job') {
+            scos.devDeployTrigger('micro-service-watchinator')
         }
 
-        doStageUnlessRelease('Deploy to Dev') {
-            scos.withDockerRegistry {
-                image.push()
-                image.push('latest')
-            }
-            deployTo('dev', imageName, imageTag)
-        }
-
-        doStageIfPromoted('Deploy to Staging')  {
-            def environment = 'staging'
-
-            deployTo(environment, imageName, imageTag)
-
-            scos.applyAndPushGitHubTag(environment)
-
-            scos.withDockerRegistry {
-                image.push(environment)
-            }
+        doStageIfMergedToMaster('Deploy to Staging') {
+            deployTo('staging')
+            scos.applyAndPushGitHubTag('staging')
         }
 
         doStageIfRelease('Deploy to Production') {
-            def releaseTag = env.BRANCH_NAME
-            def promotionTag = 'prod'
-
-            deployTo('prod', imageName, imageTag)
-
-            scos.applyAndPushGitHubTag(promotionTag)
-
-            scos.withDockerRegistry {
-                image = scos.pullImageFromDockerRegistry("scos/${SERVICE_NAME}", env.GIT_COMMIT_HASH)
-                image.push(releaseTag)
-                image.push(promotionTag)
-            }
+            deployTo('prod')
+            scos.applyAndPushGitHubTag('prod')
         }
     }
 }
 
 
-def deployTo(environment, imageName, tag) {
+def deployTo(environment, extraHelmCommandArgs = '') {
     def extraVars = [
-        'image_repository': "${scos.ecrHostname}/${imageName}",
-        'tag': tag
+        'extraHelmCommandArgs': extraHelmCommandArgs
     ]
 
     def terraform = scos.terraform(environment)
