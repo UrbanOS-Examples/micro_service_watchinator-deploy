@@ -1,0 +1,6 @@
+.terraform/
+outputs/
+terraform.tfstate.d/
+*.out
+*.plan
+.DS_Store
