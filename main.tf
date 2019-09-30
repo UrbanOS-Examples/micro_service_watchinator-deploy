@@ -31,8 +31,14 @@ resource "null_resource" "helm_deploy" {
     command = <<EOF
 export KUBECONFIG=${local_file.kubeconfig.filename}
 
-helm upgrade --install --namespace=watchinator ${var.watchinator_deploy_name} chart/ \
-    --values ${local_file.helm_vars.filename}
+export AWS_DEFAULT_REGION=us-east-2
+helm repo add scdp https://smartcitiesdata.github.io/charts
+helm repo update
+helm upgrade --install ${var.watchinator_deploy_name} scdp/micro-service-watchinator --namespace=watchinator \
+     --version ${var.chartVersion} \
+    --values ${local_file.helm_vars.filename} \
+    --values micro-service-watchinator.yaml \
+      ${var.extraHelmCommandArgs}
 EOF
   }
 
@@ -66,4 +72,14 @@ variable "image_repository" {
 variable "tag" {
   description = "The tag/version of the image to deploy"
   default     = "latest"
+}
+
+variable "extraHelmCommandArgs" {
+  description = "Extra command arguments that will be passed to helm upgrade command"
+  default     = ""
+}
+
+variable "chartVersion" {
+  description = "Version of the chart to deploy"
+  default     = "1.0.0"
 }
