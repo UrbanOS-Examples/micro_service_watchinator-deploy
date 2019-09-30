@@ -28,7 +28,7 @@ node ('infrastructure') {
         }
 
         doStageIfMergedToMaster('Process Dev job') {
-            scos.devDeployTrigger('micro-service-watchinator')
+            scos.devDeployTrigger('micro_service_watchinator')
         }
 
         doStageIfMergedToMaster('Deploy to Staging') {
