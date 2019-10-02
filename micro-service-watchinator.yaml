@@ -1,5 +1,4 @@
 replicaCount: 1
-CONSUMER_URI: ""
 metrics:
   port: 4002
 resourceLimits:
