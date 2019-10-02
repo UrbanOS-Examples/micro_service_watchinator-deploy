@@ -8,5 +8,5 @@ resourceLimits:
 namespace: watchinator
 image:
   repository: smartcitiesdata/micro-service-watchinator
-  tag: 2.1.1
+  tag: 2.1.2
   pullPolicy: Always
