@@ -66,7 +66,7 @@ variable "watchinator_deploy_name" {
 
 variable "image_repository" {
   description = "The image repository"
-  default     = "199837183662.dkr.ecr.us-east-2.amazonaws.com/scos/micro-service-watchinator"
+  default     = "smartcitiesdata/micro-service-watchinator"
 }
 
 variable "tag" {
