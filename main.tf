@@ -35,7 +35,7 @@ export AWS_DEFAULT_REGION=us-east-2
 helm repo add scdp https://smartcitiesdata.github.io/charts
 helm repo update
 helm upgrade --install ${var.watchinator_deploy_name} scdp/micro-service-watchinator --namespace=watchinator \
-     --version ${var.chartVersion} \
+    --version ${var.chartVersion} \
     --values ${local_file.helm_vars.filename} \
     --values micro-service-watchinator.yaml \
       ${var.extraHelmCommandArgs}
@@ -81,5 +81,5 @@ variable "extraHelmCommandArgs" {
 
 variable "chartVersion" {
   description = "Version of the chart to deploy"
-  default     = "1.0.0"
+  default     = "1.0.1"
 }
