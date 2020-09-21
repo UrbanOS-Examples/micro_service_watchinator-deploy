@@ -32,7 +32,7 @@ resource "null_resource" "helm_deploy" {
 export KUBECONFIG=${local_file.kubeconfig.filename}
 
 export AWS_DEFAULT_REGION=us-east-2
-helm repo add scdp https://smartcitiesdata.github.io/charts
+helm repo add scdp https://datastillery.github.io/charts
 helm repo update
 helm upgrade --install ${var.watchinator_deploy_name} scdp/micro-service-watchinator --namespace=watchinator \
     --version ${var.chartVersion} \
