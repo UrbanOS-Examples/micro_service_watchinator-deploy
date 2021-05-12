@@ -83,6 +83,6 @@ variable "extraHelmCommandArgs" {
 
 variable "chartVersion" {
   description = "Version of the chart to deploy"
-  default     = "1.0.1"
+  default     = "1.1.0"
 }
 
